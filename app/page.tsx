@@ -5,9 +5,8 @@
  * Shows QR code for mobile scanning and lists received files
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { io, Socket } from 'socket.io-client';
 
 interface FileItem {
   id: string;
@@ -21,7 +20,6 @@ export default function HomePage() {
   const [sessionId, setSessionId] = useState<string>('');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
   const [uploadUrl, setUploadUrl] = useState('');
 
   useEffect(() => {
@@ -40,36 +38,24 @@ export default function HomePage() {
     const url = `${window.location.origin}/upload/${newSessionId}`;
     setUploadUrl(url);
 
-    // Connect to Socket.IO
-    const socket = io({
-      path: '/socket.io',
-    });
+    setIsConnected(true);
 
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      console.log('[Socket] Connected');
-      setIsConnected(true);
-      socket.emit('join_session', newSessionId);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('[Socket] Disconnected');
-      setIsConnected(false);
-    });
-
-    // Listen for file uploads
-    socket.on('file_uploaded', (file: FileItem) => {
-      console.log('[Socket] File uploaded:', file);
-      setFiles((prev) => [file, ...prev]);
-    });
+    // Poll for new files every 2 seconds
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/files/${newSessionId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFiles(data.files || []);
+        }
+      } catch (error) {
+        console.error('[Polling] Error fetching files:', error);
+      }
+    }, 2000);
 
     // Cleanup
     return () => {
-      if (socketRef.current) {
-        socketRef.current.emit('leave_session', newSessionId);
-        socketRef.current.disconnect();
-      }
+      clearInterval(pollInterval);
     };
   }, []);
 

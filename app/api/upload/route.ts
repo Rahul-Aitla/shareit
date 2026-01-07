@@ -65,18 +65,6 @@ export async function POST(request: NextRequest) {
     
     storeFile(storedFile);
     
-    // Emit socket event to notify desktop clients
-    const io = (global as any).io;
-    if (io) {
-      io.to(sessionId).emit('file_uploaded', {
-        id: fileId,
-        filename: file.name,
-        mimetype: file.type,
-        size: file.size,
-        uploadedAt: storedFile.uploadedAt,
-      });
-    }
-    
     return NextResponse.json({
       success: true,
       file: {
