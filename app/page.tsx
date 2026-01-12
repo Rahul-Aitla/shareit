@@ -21,6 +21,8 @@ export default function HomePage() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [uploadUrl, setUploadUrl] = useState('');
+  const [sessionExpiresIn, setSessionExpiresIn] = useState<number>(10 * 60); // in seconds
+  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
 
   useEffect(() => {
     // Generate session ID
@@ -53,9 +55,18 @@ export default function HomePage() {
       }
     }, 2000);
 
+    // Session timer countdown (updates every second)
+    const startTime = Date.now();
+    const timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const remaining = Math.max(0, 10 * 60 - elapsed);
+      setSessionExpiresIn(remaining);
+    }, 1000);
+
     // Cleanup
     return () => {
       clearInterval(pollInterval);
+      clearInterval(timerInterval);
     };
   }, []);
 
@@ -72,13 +83,29 @@ export default function HomePage() {
     link.click();
   };
 
-  const handlePrint = async (fileId: string) => {
-    // Open file in new window and trigger print
+  const handlePrint = async (file: FileItem) => {
+    // For images and PDFs, show preview first on desktop
+    if (window.innerWidth >= 768 && (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf')) {
+      setPreviewFile(file);
+    } else {
+      // Direct print for non-previewable files or mobile
+      printFileDirect(file.id);
+    }
+  };
+
+  const printFileDirect = (fileId: string) => {
     const printWindow = window.open(`/api/download/${fileId}`, '_blank');
     if (printWindow) {
       printWindow.addEventListener('load', () => {
         printWindow.print();
       });
+    }
+  };
+
+  const handlePrintFromPreview = () => {
+    if (previewFile) {
+      printFileDirect(previewFile.id);
+      setPreviewFile(null);
     }
   };
 
@@ -117,7 +144,7 @@ export default function HomePage() {
               )}
             </div>
             <p className="text-sm text-gray-500 mt-4 text-center max-w-md">
-              Session expires in 10 minutes. Files will be automatically deleted.
+              Session expires in {Math.floor(sessionExpiresIn / 60)} minutes {sessionExpiresIn % 60} seconds. Files will be automatically deleted.
             </p>
           </div>
         </div>
@@ -208,7 +235,7 @@ export default function HomePage() {
                         Download
                       </button>
                       <button
-                        onClick={() => handlePrint(file.id)}
+                        onClick={() => handlePrint(file)}
                         className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
                       >
                         Print
@@ -226,6 +253,63 @@ export default function HomePage() {
           <p>No login required • Files auto-delete after 10 minutes</p>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">Print Preview</h3>
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Preview Content */}
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-50">
+              {previewFile.mimetype.startsWith('image/') ? (
+                <img
+                  src={`/api/download/${previewFile.id}`}
+                  alt={previewFile.filename}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : previewFile.mimetype === 'application/pdf' ? (
+                <iframe
+                  src={`/api/download/${previewFile.id}`}
+                  className="w-full h-full min-h-[500px]"
+                  title={previewFile.filename}
+                />
+              ) : null}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="text-sm text-gray-600">
+                <p className="font-medium">{previewFile.filename}</p>
+                <p className="text-xs">{formatFileSize(previewFile.size)}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPreviewFile(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePrintFromPreview}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                >
+                  Print
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
