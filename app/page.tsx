@@ -23,8 +23,12 @@ export default function HomePage() {
   const [uploadUrl, setUploadUrl] = useState('');
   const [sessionExpiresIn, setSessionExpiresIn] = useState<number>(10 * 60); // in seconds
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Mark as client-side rendered
+    setIsClient(true);
+    
     // Generate session ID
     const newSessionId = crypto.randomUUID();
     setSessionId(newSessionId);
@@ -85,7 +89,11 @@ export default function HomePage() {
 
   const handlePrint = async (file: FileItem) => {
     // For images and PDFs, show preview first on desktop
-    if (window.innerWidth >= 768 && (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf')) {
+    const isDesktop = isClient && window.innerWidth >= 768;
+    const isImage = file.mimetype.startsWith('image/');
+    const isPDF = file.mimetype === 'application/pdf' || file.filename.toLowerCase().endsWith('.pdf');
+    
+    if (isDesktop && (isImage || isPDF)) {
       setPreviewFile(file);
     } else {
       // Direct print for non-previewable files or mobile
@@ -113,38 +121,28 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 mt-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">ShareIt</h1>
-          <p className="text-gray-600">
-            Scan the QR code from your phone to upload files
+        <div className="text-center mb-6 mt-8">
+          <h1 className="text-5xl font-bold text-gray-800 mb-3">ShareIt</h1>
+          <p className="text-xl text-gray-700 font-medium">
+            Scan → Upload → Print
           </p>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            />
-            <span className="text-sm text-gray-500">
-              {isConnected ? 'Connected' : 'Connecting...'}
-            </span>
-          </div>
         </div>
 
-        {/* QR Code Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        {/* QR Code Section - PRIMARY FOCUS */}
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-2xl p-10 mb-8">
           <div className="flex flex-col items-center">
-            <div className="bg-white p-6 rounded-xl border-4 border-gray-200">
+            <div className="bg-white p-8 rounded-2xl shadow-lg">
               {sessionId && (
                 <QRCodeSVG
                   value={uploadUrl}
-                  size={256}
+                  size={280}
                   level="H"
                   includeMargin={false}
                 />
               )}
             </div>
-            <p className="text-sm text-gray-500 mt-4 text-center max-w-md">
-              Session expires in {Math.floor(sessionExpiresIn / 60)} minutes {sessionExpiresIn % 60} seconds. Files will be automatically deleted.
+            <p className="text-white text-base font-medium mt-5 text-center">
+              Session expires in {Math.floor(sessionExpiresIn / 60)}:{String(sessionExpiresIn % 60).padStart(2, '0')}
             </p>
           </div>
         </div>
@@ -156,21 +154,12 @@ export default function HomePage() {
           </h2>
 
           {files.length === 0 ? (
-            <div className="text-center py-12">
-              <svg
-                className="mx-auto h-16 w-16 text-gray-400 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              <p className="text-gray-500">No files yet. Scan the QR code to start uploading.</p>
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+              </div>
+              <p className="text-xl text-gray-600 font-medium">Waiting for files…</p>
+              <p className="text-sm text-gray-400 mt-2">Session active</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -249,8 +238,8 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>No login required • Files auto-delete after 10 minutes</p>
+        <div className="text-center mt-8 text-xs text-gray-400">
+          <p>No login • Auto-delete after session</p>
         </div>
       </div>
 
@@ -277,11 +266,11 @@ export default function HomePage() {
                   alt={previewFile.filename}
                   className="max-w-full max-h-full object-contain"
                 />
-              ) : previewFile.mimetype === 'application/pdf' ? (
-                <iframe
-                  src={`/api/download/${previewFile.id}`}
-                  className="w-full h-full min-h-[500px]"
-                  title={previewFile.filename}
+              ) : (previewFile.mimetype === 'application/pdf' || previewFile.filename.toLowerCase().endsWith('.pdf')) ? (
+                <embed
+                  src={`/api/download/${previewFile.id}#toolbar=0`}
+                  type="application/pdf"
+                  className="w-full h-full min-h-[600px] rounded"
                 />
               ) : null}
             </div>

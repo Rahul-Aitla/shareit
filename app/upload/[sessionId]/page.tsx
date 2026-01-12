@@ -18,6 +18,7 @@ export default function UploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (files: FileList | null) => {
@@ -68,6 +69,10 @@ export default function UploadPage() {
 
       const data = await response.json();
       setUploadedFiles((prev) => [...prev, data.file.filename]);
+      
+      // Show success message
+      setSuccessMessage('File sent to print PC');
+      setTimeout(() => setSuccessMessage(''), 3000);
 
       // Reset after short delay
       setTimeout(() => {
@@ -111,19 +116,19 @@ export default function UploadPage() {
       <div className="max-w-lg mx-auto mt-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">📱 Upload Files</h1>
-          <p className="text-gray-600">
-            Upload files to your desktop instantly
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">Upload Files</h1>
+          <p className="text-lg text-gray-700 font-medium">
+            Scan → Upload → Print
           </p>
         </div>
 
         {/* Upload Area */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-4 mb-6">
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
               isDragging
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 bg-gray-50'
@@ -153,16 +158,16 @@ export default function UploadPage() {
                   />
                 </svg>
 
-                <p className="text-gray-700 font-medium mb-2">
-                  Drag and drop or tap to select
+                <p className="text-gray-700 font-medium mb-2 text-lg">
+                  Tap to select file
                 </p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Images and PDFs up to 10 MB
+                <p className="text-sm text-gray-500 mb-6">
+                  Images & PDFs (max 10 MB)
                 </p>
 
                 <button
                   onClick={handleButtonClick}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  className="px-10 py-5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-bold text-lg shadow-lg active:scale-95"
                 >
                   Choose File
                 </button>
@@ -205,6 +210,13 @@ export default function UploadPage() {
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-700 font-medium">{successMessage}</p>
+            </div>
+          )}
         </div>
 
         {/* Uploaded Files */}
@@ -241,30 +253,20 @@ export default function UploadPage() {
 
         {/* Info */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h3 className="font-semibold text-gray-800 mb-3">ℹ️ How it works</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 font-bold">1.</span>
-              <span>Select or drop a file to upload</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 font-bold">2.</span>
-              <span>Files appear instantly on your desktop</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 font-bold">3.</span>
-              <span>Download or print directly from desktop</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 font-bold">4.</span>
-              <span>All files auto-delete after 10 minutes</span>
-            </li>
-          </ul>
+          <h3 className="font-semibold text-gray-800 mb-4 text-center text-lg">How it works</h3>
+          <div className="flex items-center justify-center gap-3 text-gray-700">
+            <span className="font-bold text-blue-500">Scan</span>
+            <span className="text-gray-400">→</span>
+            <span className="font-bold text-blue-500">Upload</span>
+            <span className="text-gray-400">→</span>
+            <span className="font-bold text-blue-500">Print</span>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-4">Files auto-delete after session</p>
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>No login required • Secure & temporary</p>
+        <div className="text-center mt-8 text-xs text-gray-400">
+          <p>No login • Secure & temporary</p>
         </div>
       </div>
     </div>
