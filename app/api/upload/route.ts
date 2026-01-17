@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     // Validate session
     if (!isSessionValid(sessionId)) {
       return NextResponse.json(
-        { error: 'Invalid or expired session' },
-        { status: 404 }
+        { error: 'Session ended. Ask for a new QR code.' },
+        { status: 410 } // 410 Gone - resource no longer available
       );
     }
     

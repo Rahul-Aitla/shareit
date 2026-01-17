@@ -24,6 +24,10 @@ export default function HomePage() {
   const [sessionExpiresIn, setSessionExpiresIn] = useState<number>(10 * 60); // in seconds
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isResettingSession, setIsResettingSession] = useState(false);
+  const [pollIntervalRef, setPollIntervalRef] = useState<NodeJS.Timeout | null>(null);
+  const [timerIntervalRef, setTimerIntervalRef] = useState<NodeJS.Timeout | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
 
   useEffect(() => {
     // Mark as client-side rendered
@@ -31,6 +35,10 @@ export default function HomePage() {
     
     // Generate session ID
     const newSessionId = crypto.randomUUID();
+    initializeSession(newSessionId);
+  }, []);
+
+  const initializeSession = (newSessionId: string) => {
     setSessionId(newSessionId);
 
     // Create session on server
@@ -46,6 +54,10 @@ export default function HomePage() {
 
     setIsConnected(true);
 
+    // Clear existing intervals if any
+    if (pollIntervalRef) clearInterval(pollIntervalRef);
+    if (timerIntervalRef) clearInterval(timerIntervalRef);
+
     // Poll for new files every 2 seconds
     const pollInterval = setInterval(async () => {
       try {
@@ -58,21 +70,69 @@ export default function HomePage() {
         console.error('[Polling] Error fetching files:', error);
       }
     }, 2000);
+    setPollIntervalRef(pollInterval);
 
     // Session timer countdown (updates every second)
     const startTime = Date.now();
+    setSessionStartTime(startTime);
     const timerInterval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const remaining = Math.max(0, 10 * 60 - elapsed);
       setSessionExpiresIn(remaining);
     }, 1000);
+    setTimerIntervalRef(timerInterval);
+  };
 
-    // Cleanup
+  useEffect(() => {
+    // Cleanup intervals on unmount
     return () => {
-      clearInterval(pollInterval);
-      clearInterval(timerInterval);
+      if (pollIntervalRef) clearInterval(pollIntervalRef);
+      if (timerIntervalRef) clearInterval(timerIntervalRef);
     };
-  }, []);
+  }, [pollIntervalRef, timerIntervalRef]);
+
+  const handleNewSession = async () => {
+    // Check if there are files and ask for confirmation
+    if (files.length > 0) {
+      const fileCount = files.length;
+      const confirmed = window.confirm(
+        `End current session and clear ${fileCount} file${fileCount > 1 ? 's' : ''}?`
+      );
+      if (!confirmed) return;
+    }
+
+    setIsResettingSession(true);
+
+    try {
+      // Call reset API
+      const response = await fetch('/api/session/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset session');
+      }
+
+      const data = await response.json();
+      const { newSessionId } = data;
+
+      // Clear files immediately
+      setFiles([]);
+
+      // Initialize new session
+      initializeSession(newSessionId);
+
+      // Reset timer to 10:00
+      setSessionExpiresIn(10 * 60);
+    } catch (error) {
+      console.error('[Session] Error resetting session:', error);
+      alert('Failed to create new session. Please refresh the page.');
+    } finally {
+      setIsResettingSession(false);
+    }
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -141,9 +201,18 @@ export default function HomePage() {
                 />
               )}
             </div>
-            <p className="text-white text-base font-medium mt-5 text-center">
-              Session expires in {Math.floor(sessionExpiresIn / 60)}:{String(sessionExpiresIn % 60).padStart(2, '0')}
-            </p>
+            <div className="flex items-center gap-4 mt-5">
+              <p className="text-white text-base font-medium text-center">
+                Session expires in {Math.floor(sessionExpiresIn / 60)}:{String(sessionExpiresIn % 60).padStart(2, '0')}
+              </p>
+              <button
+                onClick={handleNewSession}
+                disabled={isResettingSession}
+                className="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isResettingSession ? 'Resetting...' : 'New Session'}
+              </button>
+            </div>
           </div>
         </div>
 

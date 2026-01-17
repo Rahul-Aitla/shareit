@@ -64,6 +64,10 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const data = await response.json();
+        // Check if session ended (410 Gone status)
+        if (response.status === 410) {
+          throw new Error('Session ended. Ask for a new QR code.');
+        }
         throw new Error(data.error || 'Upload failed');
       }
 

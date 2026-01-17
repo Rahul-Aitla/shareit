@@ -65,6 +65,18 @@ export function deleteSession(sessionId: string): void {
 }
 
 /**
+ * Invalidate a session immediately (for manual session reset)
+ * This marks the session as expired so it can't be used anymore
+ */
+export function invalidateSession(sessionId: string): void {
+  const session = sessions.get(sessionId);
+  if (session) {
+    // Set expiry to past time to invalidate it
+    session.expiresAt = Date.now() - 1000;
+  }
+}
+
+/**
  * Clean up expired sessions
  * This should be called periodically
  */
