@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { isSessionValid } from '@/lib/sessionStore';
-import { storeFile, MAX_FILE_SIZE } from '@/lib/fileStore';
+import { storeFile, MAX_FILE_SIZE, hasStorageCapacity } from '@/lib/fileStore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
         { status: 413 }
+      );
+    }
+
+    // Check total storage capacity
+    if (!hasStorageCapacity(file.size)) {
+      return NextResponse.json(
+        { error: 'Server storage is full. Try again later.' },
+        { status: 507 }
       );
     }
     

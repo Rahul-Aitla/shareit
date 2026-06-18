@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShareIt - Temporary File Transfer App
 
-## Getting Started
+A loginless, session-based file transfer application for quickly sharing files from mobile to desktop using QR codes.
 
-First, run the development server:
+## 🚀 Quick Start
+
+### 1. Start the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The server will start at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Using the Application
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### On Desktop:
+1. Open `http://localhost:3000` in your browser
+2. A QR code will be displayed
+3. Wait for files to appear in real-time as they're uploaded
+4. Click **Download** to save files or **Print** to open the browser's print dialog
 
-## Learn More
+#### On Mobile:
+1. Scan the QR code with your phone's camera
+2. You'll be redirected to the upload page
+3. Tap **Choose File** or drag-and-drop to upload
+4. Files appear instantly on the desktop
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+shareit/
+├── app/
+│   ├── page.tsx                          # Desktop home page with QR code
+│   ├── upload/[sessionId]/page.tsx       # Mobile upload page
+│   └── api/
+│       ├── session/route.ts              # Create session
+│       ├── upload/route.ts               # Upload files
+│       ├── files/[sessionId]/route.ts    # Fetch files
+│       └── download/[fileId]/route.ts    # Download files
+├── lib/
+│   ├── sessionStore.ts                   # Session management
+│   └── fileStore.ts                      # File storage
+└── public/                               # Static assets
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔑 Key Features
 
-## Deploy on Vercel
+- ✅ **No Authentication** - No login required
+- ✅ **QR Code Scanning** - Instant mobile connection
+- ✅ **Real-time Updates** - Files appear instantly via polling
+- ✅ **Auto-expiry** - Sessions expire after 10 minutes
+- ✅ **File Validation** - 10 MB limit, images and PDFs only
+- ✅ **Print Support** - Direct browser print dialog
+- ✅ **Mobile-friendly** - Drag-and-drop upload interface
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠 Technical Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **QR Code**: qrcode.react
+- **Storage**: In-memory (no database)
+
+## 🔒 Security & Privacy
+
+- All data stored in memory (no database)
+- Files automatically deleted after 10 minutes
+- Session-based isolation
+- No user tracking or accounts
+
+## 📝 API Endpoints
+
+- `POST /api/session` - Create a new session
+- `POST /api/upload` - Upload a file to a session
+- `GET /api/files/[sessionId]` - Get all files for a session
+- `GET /api/download/[fileId]` - Download a specific file
+
+## 🎯 Use Case
+
+Perfect for college labs where students need to quickly transfer screenshots from their phones to lab computers for printing - without logging into WhatsApp Web or other services.
+
+## 🚨 Limitations
+
+- Maximum file size: 10 MB
+- Supported formats: JPEG, PNG, GIF, WebP, PDF
+- Session duration: 10 minutes
+- Storage: In-memory only (resets on server restart), max 100 MB total
+- No silent printing (requires user interaction due to browser security)
+
+## 📱 Testing Locally
+
+To test with a real mobile device on your local network:
+
+1. Find your computer's IP address:
+   ```bash
+   ipconfig  # Windows
+   ```
+
+2. Start the server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open on desktop: `http://YOUR-IP:3000`
+4. Scan the QR code from your mobile device
+
+Make sure both devices are on the same network!
+
+---
+
+Built with ❤️ for hassle-free file sharing

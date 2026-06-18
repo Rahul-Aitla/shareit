@@ -19,11 +19,18 @@ const files = new Map<string, StoredFile>();
 // Maximum file size: 10 MB
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+// Maximum total storage across all sessions: 100 MB
+export const MAX_TOTAL_STORAGE = 100 * 1024 * 1024;
+
 /**
  * Store a file
  */
 export function storeFile(file: StoredFile): void {
   files.set(file.id, file);
+}
+
+export function hasStorageCapacity(additionalSize: number): boolean {
+  return getTotalStorageSize() + additionalSize <= MAX_TOTAL_STORAGE;
 }
 
 /**
