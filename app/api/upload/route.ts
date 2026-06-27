@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
     }
     
     // Validate file type (images and PDFs only)
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Only images and PDFs are allowed' },
+        { error: 'Only images, PDFs, and DOCX files are allowed' },
         { status: 400 }
       );
     }

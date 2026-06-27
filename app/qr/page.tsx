@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -485,11 +486,15 @@ export default function QRPage() {
             </div>
             <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
               {previewFile.mimetype.startsWith('image/') ? (
-                <img
-                  src={`/api/download/${previewFile.id}`}
-                  alt={previewFile.filename}
-                  className="max-w-full max-h-[65vh] object-contain rounded-lg"
-                />
+                <div className="relative w-full h-[65vh]">
+                  <Image
+                    src={`/api/download/${previewFile.id}`}
+                    alt={previewFile.filename}
+                    fill
+                    className="object-contain rounded-lg"
+                    unoptimized
+                  />
+                </div>
               ) : (
                 <embed
                   src={`/api/download/${previewFile.id}#toolbar=0`}

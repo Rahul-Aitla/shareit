@@ -60,9 +60,9 @@ export default function UploadPage() {
 
     const file = files[0];
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Only images (JPEG, PNG, GIF, WebP) and PDFs are allowed');
+      setError('Only images (JPEG, PNG, GIF, WebP), PDFs, and DOCX files are allowed');
       return;
     }
 
@@ -216,7 +216,7 @@ export default function UploadPage() {
                 ref={fileInputRef}
                 type="file"
                 onChange={handleFileInputChange}
-                accept="image/*,application/pdf"
+                accept="image/*,application/pdf,.docx"
                 className="hidden"
                 aria-label="Choose file to upload"
               />
