@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0D1117;
+    --navy-2: #161B22;
+    --navy-3: #21262D;
+    --cyan: #00D9FF;
+    --cyan-dim: rgba(0,217,255,0.12);
+    --cyan-dim2: rgba(0,217,255,0.06);
+    --slate: #8B9BB4;
+    --white: #F0F6FF;
+    --white-dim: rgba(240,246,255,0.08);
+    --border: rgba(240,246,255,0.1);
+    --border-cyan: rgba(0,217,255,0.25);
+  }
+
+  html { background: var(--navy); color: var(--white); font-family: 'Inter', sans-serif; font-size: 16px; scroll-behavior: smooth; }
+  body { min-height: 100vh; overflow-x: hidden; }
+
+  h1, h2, h3, .display { font-family: 'Space Grotesk', sans-serif; }
+
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 2rem;
+    background: rgba(13,17,23,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .nav-brand span { color: var(--cyan); }
+  .nav-pill { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--border-cyan); padding: 3px 10px; border-radius: 99px; }
+
+  .hero {
+    display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 4rem;
+    padding: 6rem 4rem 5rem;
+    max-width: 1100px; margin: 0 auto;
+  }
+
+  .hero-eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .hero-eyebrow::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--cyan); }
+
+  .hero h1 { font-size: 3.25rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--white); margin-bottom: 1.25rem; }
+  .hero h1 em { font-style: normal; color: var(--cyan); }
+
+  .hero-desc { font-size: 1.05rem; line-height: 1.7; color: var(--slate); margin-bottom: 2.25rem; max-width: 480px; }
+
+  .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--cyan); color: #0a0e14; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.9rem; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--slate); font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; padding: 0.75rem 1.25rem; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-decoration: none; transition: border-color 0.15s, color 0.15s; }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--white); }
+
+  .hero-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+  .badges { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+  .badge { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--slate); }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  .qr-visual {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+
+  .qr-frame {
+    width: 240px; height: 240px; background: var(--navy-2);
+    border: 1px solid var(--border-cyan); border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,217,255,0.08);
+  }
+
+  .qr-inner svg { display: block; }
+
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: scan 2.4s ease-in-out infinite;
+  }
+  @keyframes scan { 0% { top: 10%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 90%; opacity: 0; } }
+
+  .qr-corners { position: absolute; inset: 0; pointer-events: none; }
+  .qr-corners::before, .qr-corners::after,
+  .qr-corners span::before, .qr-corners span::after {
+    content: ''; position: absolute; width: 20px; height: 20px; border-color: var(--cyan); border-style: solid;
+  }
+  .qr-corners::before { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+  .qr-corners::after { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
+  .qr-corners span::before { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
+  .qr-corners span::after { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+
+  .qr-label { margin-top: 1rem; font-size: 0.78rem; color: var(--slate); text-align: center; font-family: 'Space Grotesk', sans-serif; }
+
+  .orbit-dot {
+    position: absolute; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--navy-2); border: 1px solid var(--border-cyan);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  .orbit-dot:nth-child(2) { top: 0; left: 50%; transform: translateX(-50%); }
+  .orbit-dot:nth-child(3) { bottom: 20%; right: 0; }
+  .orbit-dot:nth-child(4) { bottom: 20%; left: 0; }
+
+  .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.75rem; text-align: center; }
+  .section-title { font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: 0.75rem; letter-spacing: -0.015em; }
+  .section-sub { font-size: 1rem; color: var(--slate); text-align: center; margin-bottom: 3.5rem; line-height: 1.6; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; position: relative; }
+
+  .step-connector {
+    position: absolute; top: 44px; left: calc(33.33% - 12px); right: calc(33.33% - 12px);
+    height: 1px; background: linear-gradient(90deg, var(--border-cyan), transparent 50%, var(--border-cyan));
+    z-index: 0;
+  }
+
+  .step-card {
+    background: var(--navy-2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.75rem; position: relative; transition: border-color 0.2s;
+  }
+  .step-card:hover { border-color: var(--border-cyan); }
+
+  .step-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--border-cyan); background: var(--cyan-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--cyan);
+    margin-bottom: 1.25rem; position: relative; z-index: 1;
+  }
+  .step-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+  .step-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--white); }
+  .step-card p { font-size: 0.88rem; line-height: 1.6; color: var(--slate); }
+
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .feature-card {
+    background: var(--navy-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.5rem; transition: border-color 0.2s, background 0.2s;
+  }
+  .feature-card:hover { border-color: var(--border-cyan); background: var(--cyan-dim2); }
+  .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+  .feature-card h3 { font-size: 0.92rem; font-weight: 600; color: var(--white); margin-bottom: 0.4rem; }
+  .feature-card p { font-size: 0.82rem; color: var(--slate); line-height: 1.55; }
+
+  .use-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .usecase {
+    background: var(--navy-2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.75rem; display: flex; align-items: flex-start; gap: 1rem; transition: border-color 0.2s;
+  }
+  .usecase:hover { border-color: var(--border-cyan); }
+  .usecase-icon { font-size: 1.75rem; flex-shrink: 0; }
+  .usecase h3 { font-size: 0.95rem; font-weight: 600; color: var(--white); margin-bottom: 0.35rem; }
+  .usecase p { font-size: 0.84rem; color: var(--slate); line-height: 1.55; }
+
+  .cta-section {
+    margin: 0 2rem 5rem; max-width: 1100px; margin-left: auto; margin-right: auto;
+    background: var(--navy-2); border: 1px solid var(--border-cyan); border-radius: 24px;
+    padding: 4rem 2rem; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta-glow {
+    position: absolute; width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,217,255,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .cta-section h2 { font-size: 2rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.015em; position: relative; }
+  .cta-section p { font-size: 1rem; color: var(--slate); margin-bottom: 2rem; position: relative; }
+  .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; }
+
+  .divider { height: 1px; background: var(--border); max-width: 1100px; margin: 0 auto; }
+
+  footer { padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--slate); }
+
+  @media (max-width: 780px) {
+    .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 2.25rem; }
+    .hero-actions { justify-content: center; }
+    .badges { justify-content: center; }
+    .qr-visual { display: none; }
+    .steps { grid-template-columns: 1fr; }
+    .step-connector { display: none; }
+    .use-cases { grid-template-columns: 1fr; }
+    .nav { padding: 1rem 1.25rem; }
+    .section { padding: 3.5rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-brand">Share<span>It</span></a>
+  <div class="nav-pill">No login required</div>
+</nav>
+
+<section style="max-width:1100px;margin:0 auto;">
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow">Instant file transfer</div>
+      <h1>Your phone to your desktop, <em>in seconds</em></h1>
+      <p class="hero-desc">Scan the QR code on your screen with your phone, upload files, and they appear on your desktop instantly. No accounts, no cloud storage, no friction.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn-primary">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M3 7h7V3H3v4zM3 21h7v-4H3v4zM14 7h7V3h-7v4zM14 14h3v3h-3zM17 17h4v4h-4zM14 17h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Open ShareIt
+        </a>
+        <a href="#how" class="btn-ghost">See how it works</a>
+      </div>
+      <div class="badges">
+        <span class="badge"><span class="badge-dot"></span>Auto-deletes after session</span>
+        <span class="badge"><span class="badge-dot"></span>No account needed</span>
+        <span class="badge"><span class="badge-dot"></span>Works on any phone</span>
+      </div>
+    </div>
+
+    <div class="qr-visual">
+      <div class="qr-frame">
+        <div class="qr-corners"><span></span></div>
+        <div class="qr-inner">
+          <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="8" width="50" height="50" rx="4" stroke="#00D9FF" stroke-width="2" fill="none"/>
+            <rect x="18" y="18" width="30" height="30" rx="2" fill="#00D9FF" opacity="0.7"/>
+            <rect x="82" y="8" width="50" height="50" rx="4" stroke="#00D9FF" stroke-width="2" fill="none"/>
+            <rect x="92" y="18" width="30" height="30" rx="2" fill="#00D9FF" opacity="0.7"/>
+            <rect x="8" y="82" width="50" height="50" rx="4" stroke="#00D9FF" stroke-width="2" fill="none"/>
+            <rect x="18" y="92" width="30" height="30" rx="2" fill="#00D9FF" opacity="0.7"/>
+            <rect x="82" y="82" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="94" y="82" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="106" y="82" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="118" y="82" width="14" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="82" y="94" width="14" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="100" y="94" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="112" y="94" width="20" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="82" y="106" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="94" y="106" width="14" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="112" y="106" width="8" height="8" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="82" y="118" width="20" height="14" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="106" y="118" width="8" height="14" rx="1" fill="#00D9FF" opacity="0.6"/>
+            <rect x="118" y="118" width="14" height="14" rx="1" fill="#00D9FF" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="scan-line"></div>
+      </div>
+      <div class="orbit-dot"><span>📱</span></div>
+      <div class="orbit-dot"><span>🖨️</span></div>
+      <div class="orbit-dot"><span>💾</span></div>
+      <p class="qr-label">Point your camera here</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" id="how">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three steps, nothing to install</h2>
+  <p class="section-sub">ShareIt bridges your phone and desktop without cables, accounts, or apps.</p>
+
+  <div class="steps">
+    <div class="step-connector"></div>
+    <div class="step-card">
+      <div class="step-num">01</div>
+      <div class="step-icon">🖥️</div>
+      <h3>Open ShareIt on desktop</h3>
+      <p>Visit the site on your desktop or laptop. A unique QR code generates instantly for your session.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">02</div>
+      <div class="step-icon">📸</div>
+      <h3>Scan with your phone</h3>
+      <p>Use your phone's camera to scan the QR code. No app download needed — opens straight in your mobile browser.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">03</div>
+      <div class="step-icon">⚡</div>
+      <h3>Upload and use</h3>
+      <p>Select files from your phone. They appear on your desktop instantly — download them or send directly to your printer.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Built for speed, not storage</h2>
+  <p class="section-sub">Everything you need to move files fast. Nothing you don't.</p>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>No account required</h3>
+      <p>Zero sign-up, zero login. Works the moment you open it.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💥</div>
+      <h3>Auto-deletes on close</h3>
+      <p>Files exist only during your session. Nothing lingers on any server.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <h3>Any device, any browser</h3>
+      <p>iPhone, Android, old tablets — if the camera works, ShareIt works.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖨️</div>
+      <h3>Print-ready</h3>
+      <p>Send files straight to your desktop printer the moment they arrive.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Real-time transfer</h3>
+      <p>Files show up on desktop the instant you tap upload on your phone.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🆓</div>
+      <h3>Completely free</h3>
+      <p>No hidden plans, no file size upsells. Just free, fast transfers.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <div class="section-label">Use cases</div>
+  <h2 class="section-title">When do you actually need this?</h2>
+  <p class="section-sub">The situations where ShareIt saves the day.</p>
+
+  <div class="use-cases">
+    <div class="usecase">
+      <div class="usecase-icon">📄</div>
+      <div>
+        <h3>Print documents from your phone</h3>
+        <p>Got a PDF on your phone but the printer is only connected to your laptop? Scan, upload, print — in under 30 seconds.</p>
+      </div>
+    </div>
+    <div class="usecase">
+      <div class="usecase-icon">🖼️</div>
+      <div>
+        <h3>Move photos without a cable</h3>
+        <p>Skip the USB cable or AirDrop setup. Just open ShareIt and your photos are on your desktop instantly.</p>
+      </div>
+    </div>
+    <div class="usecase">
+      <div class="usecase-icon">🏢</div>
+      <div>
+        <h3>Share at a shared workstation</h3>
+        <p>On a computer that isn't yours? You don't need to log in to anything. Scan, transfer, done.</p>
+      </div>
+    </div>
+    <div class="usecase">
+      <div class="usecase-icon">✈️</div>
+      <div>
+        <h3>Last-minute travel document</h3>
+        <p>Boarding pass or booking confirmation stuck on your phone? Get it onto any desktop screen or printer in seconds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding: 0 2rem 5rem; max-width: 1100px; margin: 0 auto;">
+  <div class="cta-section">
+    <div class="cta-glow"></div>
+    <h2>Ready to transfer your first file?</h2>
+    <p>Open ShareIt on your desktop, point your phone at the QR code, and you're done.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">Open ShareIt now</a>
+      <a href="#how" class="btn-ghost">How it works</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+<footer>
+  <p>ShareIt — Temporary file transfer. No login · No storage · No nonsense.</p>
+</footer>
+
+</body>
+</html>

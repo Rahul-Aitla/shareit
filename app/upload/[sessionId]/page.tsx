@@ -190,7 +190,7 @@ export default function UploadPage() {
                 Retry
               </button>
               <Link
-                href="/"
+                href="/qr"
                 className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all"
               >
                 Go to Home

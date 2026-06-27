@@ -50,3 +50,5 @@ body {
 .file-enter:nth-child(3) { animation-delay: 120ms; }
 .file-enter:nth-child(4) { animation-delay: 180ms; }
 .file-enter:nth-child(5) { animation-delay: 240ms; }
+
+html { scroll-behavior: smooth; }
