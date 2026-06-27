@@ -86,10 +86,10 @@ export default function QRPage() {
       body: JSON.stringify({ sessionId: newSessionId }),
     }).then((res) => {
       if (!res.ok) throw new Error('Failed to create session');
+      setIsInitializing(false);
     }).catch((err) => {
       console.error('[Session] Error creating session:', err);
       setSessionError('Failed to create session. Please refresh the page.');
-    }).finally(() => {
       setIsInitializing(false);
     });
 
@@ -194,11 +194,7 @@ export default function QRPage() {
   };
 
   const handlePrint = (file: FileItem) => {
-    const isDesktop = isClient && window.innerWidth >= 768;
-    const isImage = file.mimetype.startsWith('image/');
-    const isPDF = file.mimetype === 'application/pdf' || file.filename.toLowerCase().endsWith('.pdf');
-
-    if (isDesktop && (isImage || isPDF)) {
+    if (isClient && window.innerWidth >= 768) {
       setPreviewFile(file);
     } else {
       printFileDirect(file.id);
@@ -263,6 +259,25 @@ export default function QRPage() {
         <div className="min-h-[300px] sm:min-h-[320px]">
           {isInitializing ? (
             <QRSkeleton />
+          ) : sessionError ? (
+            <div role="alert" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10 mb-8 text-center animate-scale-in">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-50 border border-red-100 mb-4">
+                <svg className="w-7 h-7 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-1">Failed to Create Session</h2>
+              <p className="text-sm text-gray-500 mb-6">{sessionError}</p>
+              <button
+                onClick={() => { setSessionError(''); initializeSession(crypto.randomUUID()); }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                </svg>
+                Try Again
+              </button>
+            </div>
           ) : isExpired ? (
             <div role="alert" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10 mb-8 text-center animate-scale-in">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-50 border border-amber-100 mb-4">
@@ -495,12 +510,22 @@ export default function QRPage() {
                     unoptimized
                   />
                 </div>
-              ) : (
+              ) : previewFile.mimetype === 'application/pdf' ? (
                 <embed
                   src={`/api/download/${previewFile.id}#toolbar=0`}
                   type="application/pdf"
                   className="w-full h-[65vh] rounded-lg"
                 />
+              ) : (
+                <div className="text-center py-10">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-4">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-900 font-semibold mb-1">Preview not available</p>
+                  <p className="text-sm text-gray-500">Download the file to view it on your device.</p>
+                </div>
               )}
             </div>
             <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50">
@@ -509,16 +534,22 @@ export default function QRPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setPreviewFile(null)}
+                  onClick={() => handleDownload(previewFile.id, previewFile.filename)}
                   className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all"
                 >
-                  Cancel
+                  Download
                 </button>
                 <button
                   onClick={handlePrintFromPreview}
                   className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-all"
                 >
                   Print
+                </button>
+                <button
+                  onClick={() => setPreviewFile(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all"
+                >
+                  Close
                 </button>
               </div>
             </div>
